@@ -1,6 +1,6 @@
 name: reactive_flutter
 description: "A lightweight auto-tracking reactive state management library for Flutter."
-version: 1.0.5
+version: 1.0.6
 homepage: "https://github.com/vvvirani/reactive_flutter"
 
 environment:

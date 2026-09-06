@@ -36,6 +36,7 @@ A lightweight auto-tracking reactive state management library for Flutter.
 * [Watch Widget](#watch-widget)
 
   * [Basic Example](#basic-example)
+  * [Watch Builder with Context and Child](#watch-builder-with-context-and-child)
   * [Multiple Reactive Dependencies](#multiple-reactive-dependencies)
   * [Conditional Tracking](#conditional-tracking)
   * [Nested Watch Example](#nested-watch-example)
@@ -216,6 +217,29 @@ Watch(
   builder: () {
     return Text('${counter.value}');
   },
+)
+```
+
+---
+
+## Watch Builder with Context and Child
+
+Use `Watch.builder` when you need access to `BuildContext` or want to prevent expensive child subtrees from rebuilding when reactive values change:
+
+```dart
+Watch.builder(
+  builder: (context, child) {
+    return Column(
+      children: [
+        Text(
+          'Count: ${counter.value}',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        child!,
+      ],
+    );
+  },
+  child: const HeavyComplexWidget(),
 )
 ```
 

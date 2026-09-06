@@ -45,11 +45,74 @@ import '../reactive_tracker.dart';
 /// In this case:
 /// - `darkLabel` is only tracked when `isDark == true`
 /// - `lightLabel` is only tracked when `isDark == false`
-class Watch extends StatefulWidget {
-  /// Builder executed whenever tracked dependencies change.
-  final Widget Function() builder;
+typedef WatchBuilder = Widget Function(BuildContext context, Widget? child);
 
-  const Watch({super.key, required this.builder});
+/// A widget that automatically rebuilds when any accessed `Reactive`
+/// value changes.
+///
+/// Dependencies are detected automatically by tracking
+/// which reactive values are accessed during the [builder] execution.
+///
+/// No manual dependency list is required.
+///
+/// Example:
+/// ```dart
+/// Watch(
+///   builder: () => Column(
+///     children: [
+///       Text('${counter.value}'),
+///       Text(name.value),
+///       Switch(
+///         value: isDark.value,
+///         onChanged: (v) => isDark.value = v,
+///       ),
+///     ],
+///   ),
+/// )
+/// ```
+///
+/// With [BuildContext] and [child] optimization using [Watch.builder]:
+/// ```dart
+/// Watch.builder(
+///   builder: (context, child) => Column(
+///     children: [
+///       Text('${counter.value}'),
+///       child!,
+///     ],
+///   ),
+///   child: const ExpensiveWidget(),
+/// )
+/// ```
+class Watch extends StatefulWidget {
+  final Widget Function()? _noArgsBuilder;
+  final WatchBuilder? _builderWithChild;
+
+  /// Optional child widget passed to [builder] that does not rebuild when reactive values change.
+  final Widget? child;
+
+  /// Creates a [Watch] widget using a no-argument builder callback.
+  const Watch({
+    super.key,
+    required Widget Function() builder,
+  })  : _noArgsBuilder = builder,
+        _builderWithChild = null,
+        child = null;
+
+  /// Creates a [Watch] widget with [BuildContext] access and optional [child] optimization.
+  const Watch.builder({
+    super.key,
+    required WatchBuilder builder,
+    this.child,
+  })  : _noArgsBuilder = null,
+        _builderWithChild = builder;
+
+  /// Invokes the appropriate builder with [context] and [child].
+  Widget buildChild(BuildContext context, Widget? child) {
+    if (_builderWithChild != null) {
+      return _builderWithChild!(context, child);
+    }
+    return _noArgsBuilder!();
+  }
 
   @override
   State<Watch> createState() => _WatchState();
@@ -83,13 +146,10 @@ class _WatchState extends State<Watch> {
   /// Executes the builder while dependency tracking is enabled.
   ///
   /// Used to discover all accessed reactive dependencies.
-  ///
-  /// The returned widget is ignored because this is only
-  /// a dependency discovery pass.
   void _collectDependencies() {
     ReactiveTracker.start();
 
-    widget.builder();
+    widget.buildChild(context, widget.child);
 
     final Set<ReactiveBase> dependencies = ReactiveTracker.stop();
 
@@ -119,8 +179,10 @@ class _WatchState extends State<Watch> {
   void didUpdateWidget(Watch oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Recollect dependencies if the builder changes.
-    if (oldWidget.builder != widget.builder) {
+    // Recollect dependencies if the builder or child changes.
+    if (oldWidget._noArgsBuilder != widget._noArgsBuilder ||
+        oldWidget._builderWithChild != widget._builderWithChild ||
+        oldWidget.child != widget.child) {
       _collectDependencies();
     }
   }
@@ -139,7 +201,7 @@ class _WatchState extends State<Watch> {
     // Real build with dependency tracking enabled.
     ReactiveTracker.start();
 
-    final Widget result = widget.builder();
+    final Widget result = widget.buildChild(context, widget.child);
 
     final Set<ReactiveBase> dependencies = ReactiveTracker.stop();
 
