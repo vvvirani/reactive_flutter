@@ -74,8 +74,8 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 // ── Results ───────────────────────────────────────────────
                 Expanded(
-                  child: Builder(
-                    builder: (context) {
+                  child: Watch(
+                    builder: () {
                       final SearchState<Post> s = _search.state;
 
                       if (s.isIdle) {

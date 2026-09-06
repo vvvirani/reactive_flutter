@@ -1,3 +1,11 @@
+## 1.0.6
+
+- Add `Watch.builder` constructor with `BuildContext` access and `child` widget rebuild optimization
+- Fix stack-based tracking in `ReactiveTracker` to prevent nested tracking frames from clobbering parent dependencies
+- Fix state notification tracking bug when accessing reactive values inside deferred builders (`Watch -> Builder`)
+- Pass `BuildContext` and optional `child` parameter directly to `Watch.builder` callbacks
+- Update examples and documentation for `Watch` and `Watch.builder`
+
 ## 1.0.5
 
 - Add `ReactiveIsolateTask` for reactive background isolate execution

@@ -16,36 +16,31 @@ import 'reactive_base.dart';
 class ReactiveTracker {
   ReactiveTracker._();
 
-  /// Stores all tracked reactive dependencies.
-  static final Set<ReactiveBase> _tracking = {};
+  /// Stack of tracked reactive dependency sets for nested tracking frames.
+  static final List<Set<ReactiveBase>> _stack = [];
 
   /// Indicates whether tracking is currently active.
-  static bool _isTracking = false;
+  static bool get isTracking => _stack.isNotEmpty;
 
-  /// Starts dependency tracking.
-  ///
-  /// Clears previously tracked dependencies.
+  /// Starts dependency tracking by pushing a new frame onto the stack.
   static void start() {
-    _tracking.clear();
-    _isTracking = true;
+    _stack.add({});
   }
 
-  /// Stops dependency tracking.
-  ///
-  /// Returns all tracked reactive dependencies.
+  /// Stops dependency tracking for the top frame and returns tracked dependencies.
   static Set<ReactiveBase> stop() {
-    _isTracking = false;
-
-    return Set<ReactiveBase>.of(_tracking);
+    if (_stack.isNotEmpty) {
+      return _stack.removeLast();
+    }
+    return {};
   }
 
-  /// Records a reactive dependency.
+  /// Records a reactive dependency in the active tracking frame.
   ///
-  /// Called internally by reactive value getters
-  /// when dependency tracking is active.
+  /// Called internally by reactive value getters when tracking is active.
   static void record(ReactiveBase reactive) {
-    if (_isTracking) {
-      _tracking.add(reactive);
+    if (_stack.isNotEmpty) {
+      _stack.last.add(reactive);
     }
   }
 }

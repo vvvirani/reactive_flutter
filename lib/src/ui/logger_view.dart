@@ -296,7 +296,7 @@ class _LoggerViewState extends State<_LoggerView> {
                 vertical: 4,
               ).copyWith(left: 12, right: 4),
               child: SafeArea(
-                child: Builder(builder: (context) {
+                child: () {
                   TextStyle textStyle = TextStyle(
                     fontSize: 14,
                     color: Colors.white,
@@ -337,7 +337,7 @@ class _LoggerViewState extends State<_LoggerView> {
                       )
                     ],
                   );
-                }),
+                }(),
               ),
             ),
           ],
